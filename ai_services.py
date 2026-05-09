@@ -11,7 +11,7 @@ def analyze_meal(image):
             return {"error": "GEMINI_API_KEY missing in secrets."}
         
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
         # Resize image for faster processing (max 1024px)
         max_size = (1024, 1024)
