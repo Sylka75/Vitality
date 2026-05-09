@@ -1,5 +1,5 @@
 import streamlit as st
-from database import get_user_profile, get_today_food_logs, insert_food_log, delete_food_log, update_weight, update_goal_calories, get_weight_history
+from database import supabase, get_user_profile, get_today_food_logs, insert_food_log, delete_food_log, update_weight, update_goal_calories, get_weight_history
 from ai_services import describe_image, parse_food_description
 from PIL import Image
 import pandas as pd
