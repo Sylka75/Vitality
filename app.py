@@ -125,12 +125,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- DATA FETCHING ---
-profile = get_user_profile()
+profile = None
+try:
+    profile = get_user_profile()
+except Exception as e:
+    st.error(f"Connection Error: {e}")
+
 logs = get_today_food_logs()
 weight_hist = get_weight_history()
 
 if not profile:
-    st.error("Profile not found. Database might not be initialized.")
+    if supabase is None:
+        st.error("⚠️ Connection to Supabase failed. Please check your Secrets in Streamlit Cloud.")
+    else:
+        st.error("⚠️ Profile not found in database. Please ensure you ran the SQL script in Supabase.")
     st.stop()
 
 # --- APP LOGIC ---
