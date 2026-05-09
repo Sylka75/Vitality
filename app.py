@@ -157,7 +157,7 @@ pct = min(100, (total_calories / goal) * 100) if goal > 0 else 0
 # --- HEADER ---
 col_h1, col_h2 = st.columns([2, 1])
 with col_h1:
-    st.markdown(f"<h1>Vitality v4 🌿</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1>Vitality v4. 🌿</h1>", unsafe_allow_html=True)
     st.markdown(f"<p style='color: var(--text-muted); font-size: 1.1rem;'>Track your energy, fuel your potential.</p>", unsafe_allow_html=True)
 
 with col_h2:
