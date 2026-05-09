@@ -141,6 +141,13 @@ if not profile:
         st.error("⚠️ Profile not found in database. Please ensure you ran the SQL script in Supabase.")
     st.stop()
 
+# Initialize session state
+if 'show_settings' not in st.session_state:
+    st.session_state.show_settings = False
+
+def toggle_settings():
+    st.session_state.show_settings = not st.session_state.show_settings
+
 # --- APP LOGIC ---
 total_calories = sum(log['calories'] for log in logs)
 goal = profile['goal_calories']
@@ -155,8 +162,7 @@ with col_h1:
 
 with col_h2:
     st.markdown("<div style='text-align: right;'>", unsafe_allow_html=True)
-    if st.button("⚙️ Settings"):
-        st.session_state.show_settings = not st.session_state.get('show_settings', False)
+    st.button("⚙️ Settings", on_click=toggle_settings)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --- DASHBOARD (BENTO GRID) ---

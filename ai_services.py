@@ -1,23 +1,17 @@
 import streamlit as st
-import base64
-from io import BytesIO
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 import json
 from PIL import Image
-
-def get_gemini_client():
-    gemini_key = st.secrets.get("GEMINI_API_KEY")
-    if not gemini_key:
-        return None
-    return genai.Client(api_key=gemini_key)
 
 def analyze_meal(image):
     """Uses Gemini 1.5 Flash to analyze the image and return structured nutritional data."""
     try:
-        client = get_gemini_client()
-        if not client:
+        gemini_key = st.secrets.get("GEMINI_API_KEY")
+        if not gemini_key:
             return {"error": "GEMINI_API_KEY missing in secrets."}
+        
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # Resize image for faster processing (max 1024px)
         max_size = (1024, 1024)
@@ -37,15 +31,13 @@ def analyze_meal(image):
         }
         """
         
-        response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=[prompt, image],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-            )
-        )
+        response = model.generate_content([prompt, image])
+        # Try to find JSON in the response
+        text = response.text
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0]
         
-        result = json.loads(response.text)
+        result = json.loads(text)
         return result
     except Exception as e:
         return {"error": f"Gemini Analysis Error: {str(e)}"}
