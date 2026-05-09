@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 import requests
 import base64
 from io import BytesIO
@@ -16,9 +17,13 @@ def describe_image(image):
         
         headers = {"Authorization": f"Bearer {hf_token}"}
         
+        # Resize image to prevent 'Payload Too Large' error (max 1024px)
+        max_size = (1024, 1024)
+        image.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
         # Convert PIL Image to base64
         buffered = BytesIO()
-        image.save(buffered, format="JPEG")
+        image.save(buffered, format="JPEG", quality=85)
         img_str = base64.b64encode(buffered.getvalue()).decode()
         
         # Llava payload

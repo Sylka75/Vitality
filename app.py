@@ -156,7 +156,7 @@ with col_h1:
 with col_h2:
     st.markdown("<div style='text-align: right;'>", unsafe_allow_html=True)
     if st.button("⚙️ Settings"):
-        st.session_state.show_settings = not st.get('show_settings', False)
+        st.session_state.show_settings = not st.session_state.get('show_settings', False)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --- DASHBOARD (BENTO GRID) ---
