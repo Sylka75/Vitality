@@ -1,6 +1,6 @@
 import streamlit as st
 from database import supabase, get_user_profile, get_today_food_logs, insert_food_log, delete_food_log, update_weight, update_goal_calories, get_weight_history
-from ai_services import describe_image, parse_food_description
+from ai_services import analyze_meal
 from PIL import Image
 import pandas as pd
 import plotly.express as px
@@ -213,16 +213,12 @@ with m_col1:
             
             if st.button("Analyze with AI ✨", use_container_width=True):
                 with st.spinner("AI is examining your meal..."):
-                    description = describe_image(image)
-                    if "Error" in description:
-                        st.error(description)
+                    analysis = analyze_meal(image)
+                    if "error" in analysis:
+                        st.error(analysis["error"])
                     else:
-                        analysis = parse_food_description(description)
-                        if "error" in analysis:
-                            st.error(analysis["error"])
-                        else:
-                            st.success(f"Identified: {analysis['label']} ({analysis['calories']} kcal)")
-                            st.session_state.pending_log = analysis
+                        st.success(f"Identified: {analysis['label']} ({analysis['calories']} kcal)")
+                        st.session_state.pending_log = analysis
 
         if "pending_log" in st.session_state:
             pending = st.session_state.pending_log

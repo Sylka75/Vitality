@@ -1,82 +1,60 @@
 import streamlit as st
-from PIL import Image
-import requests
 import base64
 from io import BytesIO
 from google import genai
 from google.genai import types
 import json
+from PIL import Image
 
-HF_API_URL = "https://api-inference.huggingface.co/models/llava-hf/llava-1.5-7b-hf"
+def get_gemini_client():
+    gemini_key = st.secrets.get("GEMINI_API_KEY")
+    if not gemini_key:
+        return None
+    return genai.Client(api_key=gemini_key)
 
-def describe_image(image):
+def analyze_meal(image):
+    """Uses Gemini 1.5 Flash to analyze the image and return structured nutritional data."""
     try:
-        hf_token = st.secrets.get("HF_TOKEN")
-        if not hf_token:
-            return "Error: HF_TOKEN missing in secrets."
+        client = get_gemini_client()
+        if not client:
+            return {"error": "GEMINI_API_KEY missing in secrets."}
         
-        headers = {"Authorization": f"Bearer {hf_token}"}
-        
-        # Resize image to prevent 'Payload Too Large' error (max 1024px)
+        # Resize image for faster processing (max 1024px)
         max_size = (1024, 1024)
         image.thumbnail(max_size, Image.Resampling.LANCZOS)
         
-        # Convert PIL Image to base64
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG", quality=85)
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-        
-        # Llava payload
-        payload = {
-            "inputs": f"data:image/jpeg;base64,{img_str}",
-            "parameters": {
-                "prompt": "USER: <image>\nDescribe this food in detail. What are the ingredients and portion sizes?\nASSISTANT:"
-            }
-        }
-        
-        response = requests.post(HF_API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        
-        res_json = response.json()
-        if isinstance(res_json, list) and len(res_json) > 0 and 'generated_text' in res_json[0]:
-            text = res_json[0]['generated_text']
-            if "ASSISTANT:" in text:
-                return text.split("ASSISTANT:")[1].strip()
-            return text
-        return str(res_json)
-    except Exception as e:
-        return f"Error with Vision API: {e}"
-
-def parse_food_description(description: str):
-    try:
-        gemini_key = st.secrets.get("GEMINI_API_KEY")
-        if not gemini_key:
-            return {"error": "GEMINI_API_KEY missing in secrets."}
-            
-        client = genai.Client(api_key=gemini_key)
-        
-        prompt = f"""
-        You are an expert nutritionist. I will provide a description of food from an image.
-        Your task is to estimate the calories and provide a short label and an emoji.
-        
-        Description: {description}
+        prompt = """
+        You are an expert nutritionist. Analyze this food image and:
+        1. Identify the main dish/items.
+        2. Estimate the total calories for the portion shown.
+        3. Pick one single emoji that best represents the meal.
         
         Respond ONLY in valid JSON format matching this schema:
-        {{
+        {
             "label": "Short name of the food (e.g., Avocado Toast)",
             "calories": 350,
             "emoji": "🥑"
-        }}
+        }
         """
         
         response = client.models.generate_content(
             model='gemini-1.5-flash',
-            contents=prompt,
+            contents=[prompt, image],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
             )
         )
+        
         result = json.loads(response.text)
         return result
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Gemini Analysis Error: {str(e)}"}
+
+# Keeping old names for compatibility if needed, but pointing to the new better service
+def describe_image(image):
+    # This is now handled in one step by analyze_meal
+    return "Analysis handled by Gemini"
+
+def parse_food_description(description: str):
+    # This is now handled in one step by analyze_meal
+    return {}
