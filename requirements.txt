@@ -1,0 +1,8 @@
+streamlit
+supabase
+requests
+google-genai
+python-dotenv
+Pillow
+pandas
+plotly
